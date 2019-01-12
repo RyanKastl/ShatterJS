@@ -37,6 +37,8 @@ var triangleList = [];
 var baseTriangle = {vertices: [[-0.5, 0.0, 0.0],
                     [0.5, 0.0, 0.0],
                     [0.0, 0.5, 0.0]]};
+
+var triangleVertices = [];
     
 //----------------------------------------------------------------------------------
 /**
@@ -218,13 +220,13 @@ function loadVertices() {
   vertexPositionBuffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
     
-  var triangleVertices = [];
+  triangleVertices = [];
   // if (framePos == 0) {
   //   triangleList = [baseTriangle];
   // }
 
   triangleList = [];
-  breakTriangle(baseTriangle, 3);
+  breakTriangle(baseTriangle, 9);
   for (var i = 0; i < triangleList.length; i++) {
     for (var j = 0; j < triangleList[i].vertices.length; j++) {
     	var vert = triangleList[i].vertices[j];
@@ -265,7 +267,7 @@ function loadColors() {
 	var colors = [];
 	  
 	// Dark blue for the top part of the badge
-	for (i=0;i<=99;i+=3){
+	for (i=0;i<=triangleVertices.length;i+=3){
 		var r = Math.random();
 		var g = Math.random();
 		var b = Math.random();
