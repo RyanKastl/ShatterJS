@@ -34,9 +34,9 @@ var twicePi=2.0*3.14159;
 var triangleList = [];
 
 /** @global Base Triangle Mesh */
-var baseTriangle = {vertices: [-0.5, 0.0, 0.0,
-                    0.5, 0.0, 0.0,
-                    0.0, 0.5, 0.0]};
+var baseTriangle = {vertices: [[-0.5, 0.0, 0.0],
+                    [0.5, 0.0, 0.0],
+                    [0.0, 0.5, 0.0]]};
     
 //----------------------------------------------------------------------------------
 /**
@@ -151,41 +151,62 @@ function setupShaders() {
   shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
 }
 
+function vertexDistance(x, y) {
+	return (Math.sqrt(Math.pow(x[0] - y[0], 2) + Math.pow(x[1] - y[1], 2) + Math.pow(x[2] - y[2], 2)));
+}
+
+function findMid(x, y) {
+	var mid = [];
+
+	for (var i = 0; i < x.length; i++) {
+		mid.push((x[i] + y[i]) / 2);
+	}
+	return mid;
+}
+
+function getVertex(list, n) {
+	var index = n*3;
+
+	return [list[index], list[index+1], list[index+2]];
+}
+
 function breakTriangle(triangle, n) {
     if (n == 0) {
         triangleList.push(triangle);
+        return;
     }
 
-    var maxX = -1.0;
-    var minX = 1.0;
-    var maxY = -1.0;
-    var minY = 1.0;
+    var v1 = triangle.vertices[0];
+    var v2 = triangle.vertices[1];
+    var v3 = triangle.vertices[2];
 
-    for (var i = 0; i < triangle.vertices.length; i += 3) {
-        if (triangle.vertices[i] > maxX) {
-            maxX = triangle.vertices[i];
-        }
-        if (triangle.vertices[i] < minX) {
-            minX = triangle.vertices[i];
-        }
-        if (triangle.vertices[i + 1] > maxY) {
-            maxY = triangle.vertices[i + 1];
-        }
-        if (triangle.vertices[i + 1] < minY) {
-            minY = triangle.vertices[i + 1];
-        }
+    var verts = [v1, v2, v3];
+
+    var maxDistance = 0;
+    var vertex1 = [0,0,0];
+    var vertex2 = [0,0,0];
+    var vertexEnd = [0,0,0];
+
+    for (var i = 0; i < verts.length; i++) {
+    	var distance = vertexDistance(verts[i], verts[(i+1) % verts.length]);
+    	if (distance > maxDistance) {
+    		maxDistance = distance;
+    		vertex1 = verts[i];
+    		vertex2 = verts[(i+1) % verts.length];
+    		vertexEnd = verts[(i+2) % verts.length];
+    	}
     }
 
-    var halfX = (maxX + minX) / 2;
-    var halfY = (maxY + minY) / 2;
+    var vertexStart = findMid(vertex1, vertex2);
 
-    for (var i = 0; i < 3; i++) {
-        var newVerts = [triangle.vertices[3*i], triangle.vertices[3*i + 1], 0.0,
-                        triangle.vertices[(3 * (i + 1)) % 9], triangle.vertices[((3 * (i + 1)) % 9) + 1], 0.0,
-                        halfX, halfY, 0.0];
-        var newTriangle = {vertices: newVerts};
-        breakTriangle(newTriangle, n - 1);
-    }
+    var newVerts1 = [vertex1, vertexStart, vertexEnd];
+    var newVerts2 = [vertex2, vertexStart, vertexEnd];
+
+    var newTriangle1 = {vertices: newVerts1};
+    var newTriangle2 = {vertices: newVerts2};
+
+    breakTriangle(newTriangle1, n - 1);
+    breakTriangle(newTriangle2, n - 1);
 }
 
 /**
@@ -198,12 +219,18 @@ function loadVertices() {
   gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
     
   var triangleVertices = [];
-  if (framePos == 0) {
-    triangleList = [baseTriangle];
-  }
+  // if (framePos == 0) {
+  //   triangleList = [baseTriangle];
+  // }
+
+  triangleList = [];
+  breakTriangle(baseTriangle, 3);
   for (var i = 0; i < triangleList.length; i++) {
     for (var j = 0; j < triangleList[i].vertices.length; j++) {
-        triangleVertices.push(triangleList[i].vertices[j])
+    	var vert = triangleList[i].vertices[j];
+        for (var k = 0; k < vert.length; k++) {
+        	triangleVertices.push(vert[k]);
+        }
     }
   }
 
@@ -227,30 +254,29 @@ function deformSin(x,y) {
     return deformPt;
 }
 
+
 /**
  * Populate color buffer with data
  */
 function loadColors() {
-  vertexColorBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, vertexColorBuffer);
-    
-  var colors = [];
-  
-  // Dark blue for the top part of the badge
-  for (i=0;i<=53;i++){
-      colors.push(0.0);
-      colors.push(0.0);
-      colors.push(0.4);
-      colors.push(1.0);
-  }
+	vertexColorBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, vertexColorBuffer);
+	    
+	var colors = [];
+	  
+	// Dark blue for the top part of the badge
+	for (i=0;i<=99;i+=3){
+		var r = Math.random();
+		var g = Math.random();
+		var b = Math.random();
 
-  // Orange for the bottom stripes
-  for (i=0;i<=53;i++){
-      colors.push(0.8);
-      colors.push(0.4);
-      colors.push(0);
-      colors.push(1.0);
-  }
+		for (var j = 0; j < 3; j++) {
+			colors.push(r);
+		    colors.push(g);
+		    colors.push(b);
+		    colors.push(1.0);
+		}
+	  }
     
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
   vertexColorBuffer.itemSize = 4;
