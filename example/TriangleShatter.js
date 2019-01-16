@@ -34,9 +34,9 @@ var twicePi=2.0*3.14159;
 var triangleList = [];
 
 /** @global Base Triangle Mesh */
-var baseTriangle = {vertices: [[-0.5, 0.0, 0.0],
-                    [0.5, 0.0, 0.0],
-                    [0.0, 0.5, 0.0]]};
+var baseTriangle = [-0.5, 0.0, 0.0,
+                     0.5, 0.0, 0.0,
+                     0.0, 0.5, 0.0];
 
 var triangleVertices = [];
     
@@ -153,64 +153,6 @@ function setupShaders() {
   shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
 }
 
-function vertexDistance(x, y) {
-	return (Math.sqrt(Math.pow(x[0] - y[0], 2) + Math.pow(x[1] - y[1], 2) + Math.pow(x[2] - y[2], 2)));
-}
-
-function findMid(x, y) {
-	var mid = [];
-
-	for (var i = 0; i < x.length; i++) {
-		mid.push((x[i] + y[i]) / 2);
-	}
-	return mid;
-}
-
-function getVertex(list, n) {
-	var index = n*3;
-
-	return [list[index], list[index+1], list[index+2]];
-}
-
-function breakTriangle(triangle, n) {
-    if (n == 0) {
-        triangleList.push(triangle);
-        return;
-    }
-
-    var v1 = triangle.vertices[0];
-    var v2 = triangle.vertices[1];
-    var v3 = triangle.vertices[2];
-
-    var verts = [v1, v2, v3];
-
-    var maxDistance = 0;
-    var vertex1 = [0,0,0];
-    var vertex2 = [0,0,0];
-    var vertexEnd = [0,0,0];
-
-    for (var i = 0; i < verts.length; i++) {
-    	var distance = vertexDistance(verts[i], verts[(i+1) % verts.length]);
-    	if (distance > maxDistance) {
-    		maxDistance = distance;
-    		vertex1 = verts[i];
-    		vertex2 = verts[(i+1) % verts.length];
-    		vertexEnd = verts[(i+2) % verts.length];
-    	}
-    }
-
-    var vertexStart = findMid(vertex1, vertex2);
-
-    var newVerts1 = [vertex1, vertexStart, vertexEnd];
-    var newVerts2 = [vertex2, vertexStart, vertexEnd];
-
-    var newTriangle1 = {vertices: newVerts1};
-    var newTriangle2 = {vertices: newVerts2};
-
-    breakTriangle(newTriangle1, n - 1);
-    breakTriangle(newTriangle2, n - 1);
-}
-
 /**
  * Populate vertex buffer with data
  */
@@ -226,7 +168,7 @@ function loadVertices() {
   // }
 
   triangleList = [];
-  breakTriangle(baseTriangle, 9);
+  breakTriangle(convertToTriangles(baseTriangle)[0], 9, triangleList);
   for (var i = 0; i < triangleList.length; i++) {
     for (var j = 0; j < triangleList[i].vertices.length; j++) {
     	var vert = triangleList[i].vertices[j];
