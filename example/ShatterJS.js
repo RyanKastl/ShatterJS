@@ -57,7 +57,7 @@ function equalize(src, dest) {
         }
     }
 
-    var remainder = lrgTri.length - newTriList;
+    var remainder = lrgTri.length - newTriList.length;
 
     for (var i = 0; i < remainder; i++) {
         breakTriangle(smlTri.shift(), 1, smlTri);
