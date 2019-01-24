@@ -38,6 +38,68 @@ var baseTriangle = [-0.5, 0.0, 0.0,
                      0.5, 0.0, 0.0,
                      0.0, 0.5, 0.0];
 
+var dir = 1;
+
+var badge = [-0.5, 0.5, 0.0,
+      -0.5, 0.3, 0.0,
+      -0.4, 0.3, 0.0,
+      -0.5, 0.5, 0.0,
+      -0.4, 0.3, 0.0,
+      -0.2, 0.3, 0.0,
+      -0.5, 0.5, 0.0,
+      -0.2, 0.3, 0.0,
+       0.2, 0.3, 0.0,
+      -0.5, 0.5, 0.0,
+       0.2, 0.3, 0.0,
+       0.4, 0.3, 0.0,
+      -0.5, 0.5, 0.0,
+       0.4, 0.3, 0.0,
+       0.5, 0.3, 0.0,
+      -0.5, 0.5, 0.0,
+       0.5, 0.3, 0.0,
+       0.5, 0.5, 0.0,
+      
+      -0.4, 0.3, 0.0,
+      -0.4, -0.4, 0.0,
+      -0.2, -0.4, 0.0,
+      -0.4, 0.3, 0.0,
+      -0.2, -0.4, 0.0,
+      -0.2, -0.2, 0.0,
+      -0.4, 0.3, 0.0,
+      -0.2, -0.2, 0.0,
+      -0.2, 0.1, 0.0,
+      -0.4, 0.3, 0.0,
+      -0.2, 0.3, 0.0,
+      -0.2, 0.1, 0.0,
+      -0.2, 0.1, 0.0,
+      -0.2, -0.2, 0.0,
+      -0.1, -0.2, 0.0,
+      -0.2, 0.1, 0.0,
+      -0.1, 0.1, 0.0,
+      -0.1, -0.2, 0.0,
+
+       0.4, 0.3, 0.0,
+       0.4, -0.4, 0.0,
+       0.2, -0.4, 0.0,
+       0.4, 0.3, 0.0,
+       0.2, -0.4, 0.0,
+       0.2, -0.2, 0.0,
+       0.4, 0.3, 0.0,
+       0.2, -0.2, 0.0,
+       0.2, 0.1, 0.0,
+       0.4, 0.3, 0.0,
+       0.2, 0.3, 0.0,
+       0.2, 0.1, 0.0,
+       0.2, 0.1, 0.0,
+       0.2, -0.2, 0.0,
+       0.1, -0.2, 0.0,
+       0.2, 0.1, 0.0,
+       0.1, 0.1, 0.0,
+       0.1, -0.2, 0.0]
+
+var source = {};
+var dest = {};
+
 var triangleVertices = [];
     
 //----------------------------------------------------------------------------------
@@ -163,21 +225,26 @@ function loadVertices() {
   gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
     
   triangleVertices = [];
-  // if (framePos == 0) {
-  //   triangleList = [baseTriangle];
-  // }
 
-  triangleList = [];
-  breakTriangle(convertToTriangles(baseTriangle)[0], 9, triangleList);
-  for (var i = 0; i < triangleList.length; i++) {
-    for (var j = 0; j < triangleList[i].vertices.length; j++) {
-    	var vert = triangleList[i].vertices[j];
-        for (var k = 0; k < vert.length; k++) {
-        	triangleVertices.push(vert[k]);
-        }
-    }
+  if (framePos == 0) {
+    triangleList = [baseTriangle];
+    source = 1;
+    dest = 1;
   }
 
+  if (source == 1) {
+    var res = equalize(baseTriangle, badge);
+    source = res[0];
+    dest = res[1];
+  }
+  var p = framePos / 100;
+  if (p > 1) {
+    p = 1;
+  }
+  if (p < 0) {
+    p = 0;
+  }
+  triangleVertices = transform(source, dest, p);
 
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangleVertices), gl.DYNAMIC_DRAW);
   vertexPositionBuffer.itemSize = 3;
@@ -210,9 +277,9 @@ function loadColors() {
 	  
 	// Dark blue for the top part of the badge
 	for (i=0;i<=triangleVertices.length;i+=3){
-		var r = Math.random();
-		var g = Math.random();
-		var b = Math.random();
+		var r = 0;//Math.random();
+		var g = 0;//Math.random();
+		var b = 1;//Math.random();
 
 		for (var j = 0; j < 3; j++) {
 			colors.push(r);
@@ -263,8 +330,20 @@ function draw() {
  * Animation to be called from tick. Updates globals and performs animation for each tick.
  */
 function animate() { 
-    framePos= (framePos+1.0) % 360;
-    loadVertices();
+    
+      loadVertices();
+    if (framePos == 1) {
+      loadColors();
+    }
+    framePos = (framePos+dir);
+    if (framePos == 121) {
+      dir = -1;
+      framePos = 120;
+    }
+    if (framePos == -21) {
+      dir = 1;
+      framePos = -20;
+    }
 }
 
 /**

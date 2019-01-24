@@ -34,12 +34,14 @@ function getVertex(list, n) {
 function equalize(src, dest) {
     var small = {};
     var large = {};
+    var switched = false;
 
     if (src.length < dest.length) {
         small = src;
         large = dest;
     }
     else {
+    	switched = true;
         small = dest;
         large = src;
     }
@@ -50,14 +52,20 @@ function equalize(src, dest) {
     //var newTriList = [];
 
     if (1.0 * lrgTri.length / smlTri.length > 2) {
-        var exp = Math.log(lrgTri) / Math.log(smlTri.length);
+    	var smlLen = smlTri.length;
+    	var lrgLen = lrgTri.length;
+    	if (smlLen == 1) {
+    		smlLen = 2;
+    		//lrgLen = lrgLen * 2;
+    	}
+        var exp = Math.log(lrgLen) / Math.log(smlLen);
         console.log("Exponent: " + exp);
         for (var i = 0; i < smlTri.length; i++) {
-            breakTriangle(smlTri.shift(), Math.floor(exp), smlTri);
+            //breakTriangle(smlTri.shift(), Math.floor(exp), smlTri);
         }
     }
 
-    var remainder = lrgTri.length - newTriList.length;
+    var remainder = lrgTri.length - smlTri.length;
 
     for (var i = 0; i < remainder; i++) {
         breakTriangle(smlTri.shift(), 1, smlTri);
@@ -65,6 +73,13 @@ function equalize(src, dest) {
 
     console.log("Length of sml: " + smlTri.length);
     console.log("Length of lrg: " + lrgTri.length);
+
+    if (switched) {
+    	return [lrgTri, smlTri];
+    }
+    else {
+    	return [smlTri, lrgTri];
+    }
 }
 
 function breakTriangle(triangle, n, list) {
@@ -104,4 +119,19 @@ function breakTriangle(triangle, n, list) {
 
     breakTriangle(newTriangle1, n - 1, list);
     breakTriangle(newTriangle2, n - 1, list);
+}
+
+function transform(src, dest, p) {
+	var final = [];
+	for (var k = 0; k < src.length; k++) {
+		for (var i = 0; i < src[k].vertices.length; i++) {
+			for (var j = 0; j < src[k].vertices[i].length; j++) {
+				console.log("k: " + k + " i: " + i + " j: " + j);
+				var dif = -1 * (src[k].vertices[i][j] - dest[k].vertices[i][j]);
+				final.push(src[k].vertices[i][j] + p*dif);
+			}
+		}
+	}
+
+	return final;
 }
