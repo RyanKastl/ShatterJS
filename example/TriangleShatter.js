@@ -1,7 +1,7 @@
 /**
- * @file Animation for an Illini Victory badge, modified from Hello Circle lab.
+ * @file ShatterJS animation, modified from Hello Circle lab.
  * @author Eric Shaffer <shaffer1@illinois.edu> - Original Hello Circle file.
- * @author Ryan Kastl <rmkastl2@illinois.edu> - Modified for Dancing Badge MP
+ * @author Ryan Kastl <rmkastl2@illinois.edu> - Modified for ShatterJS proof of concept
  */
 
 /** @global The WebGL context */
@@ -38,8 +38,10 @@ var baseTriangle = [-0.5, 0.0, 0.0,
                      0.5, 0.0, 0.0,
                      0.0, 0.5, 0.0];
 
+/** @global Animation direction */
 var dir = 1;
 
+/** @global Custom badge shape used for proof of concept */
 var badge = [-0.5, 0.5, 0.0,
       -0.5, 0.3, 0.0,
       -0.4, 0.3, 0.0,
@@ -97,9 +99,13 @@ var badge = [-0.5, 0.5, 0.0,
        0.1, 0.1, 0.0,
        0.1, -0.2, 0.0]
 
+/** @global Start object */
 var source = {};
+
+/** @global End object */
 var dest = {};
 
+/** @global Current list of vertices being animated */
 var triangleVertices = [];
     
 //----------------------------------------------------------------------------------
@@ -238,12 +244,8 @@ function loadVertices() {
     dest = res[1];
   }
   var p = framePos / 100;
-  if (p > 1) {
-    p = 1;
-  }
-  if (p < 0) {
-    p = 0;
-  }
+  p = Math.max(p, 0);
+  p = Math.min(1, p);
   triangleVertices = transform(source, dest, p);
 
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangleVertices), gl.DYNAMIC_DRAW);
